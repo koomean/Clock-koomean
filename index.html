@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Clock by koomean</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Mode Variables */
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #0984e3;
+            --secondary-text: #636e72;
+            --btn-bg: #dfe6e9;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Variables */
+            --bg-color: #1e1e1e;
+            --container-bg: #2d3436;
+            --text-color: #dfe6e9;
+            --accent-color: #74b9ff;
+            --secondary-text: #b2bec3;
+            --btn-bg: #636e72;
+            --shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .clock-container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        /* Toggle Theme Button */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .theme-toggle:hover { transform: rotate(20deg); }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--btn-bg);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            color: var(--secondary-text);
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--accent-color);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .content-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Large Time Display */
+        .time-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            font-variant-numeric: tabular-nums; /* เลขไม่ขยับไปมา */
+        }
+        
+        .date-display {
+            font-size: 1.1rem;
+            color: var(--secondary-text);
+            margin-bottom: 20px;
+        }
+
+        /* Select Box */
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--secondary-text);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            width: 80%;
+            margin-bottom: 15px;
+        }
+
+        /* Control Buttons */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: filter 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .btn-start { background-color: #00b894; }
+        .btn-stop { background-color: #d63031; }
+        .btn-reset { background-color: #636e72; }
+
+        /* Inputs for Timer */
+        .timer-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .timer-inputs input {
+            width: 60px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid var(--secondary-text);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        /* Credit Footer */
+        .footer-credit {
+            margin-top: 30px;
+            color: #b2bec3;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+    </style>
+</head>
+<body data-theme="dark"> <div class="clock-container">
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('world-clock')">นาฬิกาโลก</button>
+            <button class="tab-btn" onclick="switchTab('stopwatch')">จับเวลา</button>
+            <button class="tab-btn" onclick="switchTab('timer')">นับถอยหลัง</button>
+        </div>
+
+        <div id="world-clock" class="content-section active">
+            <select id="timezone-select" onchange="updateWorldClock()">
+                <option value="Asia/Bangkok">🇹🇭 Bangkok (ไทย)</option>
+                <option value="Asia/Tokyo">🇯🇵 Tokyo (ญี่ปุ่น)</option>
+                <option value="Europe/London">🇬🇧 London (UK)</option>
+                <option value="America/New_York">🇺🇸 New York (USA)</option>
+                <option value="Australia/Sydney">🇦🇺 Sydney (ออสเตรเลีย)</option>
+                <option value="UTC">🌍 UTC (เวลาสากล)</option>
+            </select>
+            <div class="time-display" id="clock-display">00:00:00</div>
+            <div class="date-display" id="date-display">...</div>
+        </div>
+
+        <div id="stopwatch" class="content-section">
+            <div class="time-display" id="sw-display">00:00:00</div>
+            <div class="btn-group">
+                <button class="btn btn-start" onclick="startStopwatch()">Start</button>
+                <button class="btn btn-stop" onclick="stopStopwatch()">Stop</button>
+                <button class="btn btn-reset" onclick="resetStopwatch()">Reset</button>
+            </div>
+        </div>
+
+        <div id="timer" class="content-section">
+            <div class="timer-inputs" id="timer-inputs-div">
+                <input type="number" id="tm-h" placeholder="ชม." min="0" max="99">
+                <input type="number" id="tm-m" placeholder="นาที" min="0" max="59">
+                <input type="number" id="tm-s" placeholder="วิ" min="0" max="59">
+            </div>
+            <div class="time-display" id="tm-display" style="display:none;">00:00:00</div>
+            <div class="btn-group">
+                <button class="btn btn-start" onclick="startTimer()">Start</button>
+                <button class="btn btn-stop" onclick="stopTimer()">Stop</button>
+                <button class="btn btn-reset" onclick="resetTimer()">Reset</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-credit">Create By koomean</div>
+
+    <script>
+        // --- 1. Theme Logic ---
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+
+        function toggleTheme() {
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // --- 2. Tab Logic ---
+        function switchTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Show selected
+            document.getElementById(tabId).classList.add('active');
+            
+            // Highlight Button (หาปุ่มที่กดแล้วใส่ active class)
+            event.target.classList.add('active');
+        }
+
+        // --- 3. World Clock Logic ---
+        function updateWorldClock() {
+            const timezone = document.getElementById('timezone-select').value;
+            const now = new Date();
+            
+            // Format Time
+            const timeOptions = { timeZone: timezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
+            
+            // Format Date
+            const dateOptions = { timeZone: timezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = new Intl.DateTimeFormat('th-TH', dateOptions).format(now);
+
+            document.getElementById('clock-display').innerText = timeString;
+            document.getElementById('date-display').innerText = dateString;
+        }
+        setInterval(updateWorldClock, 1000);
+        updateWorldClock(); // Run immediately
+
+        // --- 4. Stopwatch Logic ---
+        let swInterval;
+        let swTime = 0; // milliseconds
+        let swRunning = false;
+
+        function formatTime(ms) {
+            let s = Math.floor(ms / 1000);
+            let m = Math.floor(s / 60);
+            let h = Math.floor(m / 60);
+            
+            s = s % 60;
+            m = m % 60;
+            
+            // เติม 0 ข้างหน้า
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function startStopwatch() {
+            if (!swRunning) {
+                swRunning = true;
+                const startTime = Date.now() - swTime;
+                swInterval = setInterval(() => {
+                    swTime = Date.now() - startTime;
+                    document.getElementById('sw-display').innerText = formatTime(swTime);
+                }, 100); // อัปเดตทุก 0.1 วิ เพื่อประหยัดทรัพยากร
+            }
+        }
+
+        function stopStopwatch() {
+            swRunning = false;
+            clearInterval(swInterval);
+        }
+
+        function resetStopwatch() {
+            stopStopwatch();
+            swTime = 0;
+            document.getElementById('sw-display').innerText = "00:00:00";
+        }
+
+        // --- 5. Countdown Timer Logic ---
+        let tmInterval;
+        let tmTotalSeconds = 0;
+
+        function startTimer() {
+            // ถ้าจับเวลาอยู่แล้วไม่ต้องทำอะไร
+            if (tmInterval) return;
+
+            const h = parseInt(document.getElementById('tm-h').value) || 0;
+            const m = parseInt(document.getElementById('tm-m').value) || 0;
+            const s = parseInt(document.getElementById('tm-s').value) || 0;
+
+            if (tmTotalSeconds === 0) {
+                tmTotalSeconds = (h * 3600) + (m * 60) + s;
+            }
+
+            if (tmTotalSeconds <= 0) return;
+
+            // UI switching
+            document.getElementById('timer-inputs-div').style.display = 'none';
+            document.getElementById('tm-display').style.display = 'block';
+            document.getElementById('tm-display').innerText = formatTimerDisplay(tmTotalSeconds);
+
+            tmInterval = setInterval(() => {
+                tmTotalSeconds--;
+                if (tmTotalSeconds < 0) {
+                    clearInterval(tmInterval);
+                    tmInterval = null;
+                    document.getElementById('tm-display').innerText = "หมดเวลา!";
+                    // เล่นเสียงเตือนได้ที่นี่ถ้าต้องการ
+                    alert("หมดเวลาแล้ว!");
+                    resetTimer();
+                } else {
+                    document.getElementById('tm-display').innerText = formatTimerDisplay(tmTotalSeconds);
+                }
+            }, 1000);
+        }
+
+        function formatTimerDisplay(totalSeconds) {
+            let h = Math.floor(totalSeconds / 3600);
+            let m = Math.floor((totalSeconds % 3600) / 60);
+            let s = totalSeconds % 60;
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(tmInterval);
+            tmInterval = null;
+        }
+
+        function resetTimer() {
+            stopTimer();
+            tmTotalSeconds = 0;
+            document.getElementById('tm-display').style.display = 'none';
+            document.getElementById('timer-inputs-div').style.display = 'flex';
+            document.getElementById('tm-h').value = '';
+            document.getElementById('tm-m').value = '';
+            document.getElementById('tm-s').value = '';
+        }
+
+    </script>
+</body>
+</html>
