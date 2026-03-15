@@ -6,30 +6,45 @@
     <title>Universal Clock by koomean</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* ════════════════════════════════════
+           § 1 · DESIGN TOKENS
+        ════════════════════════════════════ */
         :root {
-            /* Light Mode Variables */
-            --bg-color: #f0f2f5;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --accent-color: #0984e3;
+            --bg-color:       #f0f2f5;
+            --container-bg:   #ffffff;
+            --text-color:     #333333;
+            --accent-color:   #0984e3;
+            --accent-glow:    rgba(9,132,227,0.25);
             --secondary-text: #636e72;
-            --btn-bg: #dfe6e9;
-            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --btn-bg:         #dfe6e9;
+            --border:         rgba(0,0,0,0.07);
+            --shadow:         0 10px 40px rgba(0,0,0,0.12);
+            --lap-bg:         rgba(0,0,0,0.04);
+            --toast-bg:       #2d3436;
+            --toast-text:     #ffffff;
+        }
+        [data-theme="dark"] {
+            --bg-color:       #141417;
+            --container-bg:   #1e1e24;
+            --text-color:     #e8eaed;
+            --accent-color:   #74b9ff;
+            --accent-glow:    rgba(116,185,255,0.2);
+            --secondary-text: #8a9ab5;
+            --btn-bg:         #2d3436;
+            --border:         rgba(255,255,255,0.07);
+            --shadow:         0 20px 60px rgba(0,0,0,0.6);
+            --lap-bg:         rgba(255,255,255,0.04);
+            --toast-bg:       #f5f5f5;
+            --toast-text:     #1e1e24;
         }
 
-        [data-theme="dark"] {
-            /* Dark Mode Variables */
-            --bg-color: #1e1e1e;
-            --container-bg: #2d3436;
-            --text-color: #dfe6e9;
-            --accent-color: #74b9ff;
-            --secondary-text: #b2bec3;
-            --btn-bg: #636e72;
-            --shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
+        /* ════════════════════════════════════
+           § 2 · BASE
+        ════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
@@ -37,361 +52,798 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            padding: 20px;
+            transition: background-color 0.35s ease, color 0.35s ease;
         }
 
+        /* subtle grid texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ════════════════════════════════════
+           § 3 · CARD
+        ════════════════════════════════════ */
         .clock-container {
-            background-color: var(--container-bg);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            transition: background-color 0.3s ease;
             position: relative;
+            background-color: var(--container-bg);
+            padding: 28px 28px 24px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: background-color 0.35s ease, box-shadow 0.35s ease;
+            z-index: 1;
         }
 
-        /* Toggle Theme Button */
-        .theme-toggle {
+        /* ════════════════════════════════════
+           § 4 · CORNER BUTTONS
+        ════════════════════════════════════ */
+        .corner-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 18px;
             background: none;
             border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
+            color: var(--secondary-text);
+            font-size: 1.25rem;
             cursor: pointer;
-            transition: transform 0.3s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s, color 0.2s, transform 0.3s;
         }
+        .corner-btn:hover {
+            background: var(--lap-bg);
+            color: var(--accent-color);
+        }
+        .theme-toggle { right: 18px; }
         .theme-toggle:hover { transform: rotate(20deg); }
 
-        /* Navigation Tabs */
+        /* Koo Mean Site link – top-left */
+        .site-link { left: 18px; font-size: 1rem; text-decoration: none; }
+        .site-link:hover { transform: scale(1.15); }
+
+        /* ════════════════════════════════════
+           § 5 · TABS
+        ════════════════════════════════════ */
         .tabs {
             display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            border-bottom: 2px solid var(--btn-bg);
+            justify-content: center;
+            gap: 4px;
+            margin: 10px 0 22px;
+            background: var(--lap-bg);
+            border-radius: 12px;
+            padding: 4px;
         }
-
         .tab-btn {
+            flex: 1;
             background: none;
             border: none;
-            padding: 10px 15px;
-            font-size: 1rem;
+            padding: 9px 8px;
+            font-size: 0.88rem;
             color: var(--secondary-text);
             cursor: pointer;
             font-weight: 600;
-            position: relative;
+            border-radius: 9px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
         }
-
         .tab-btn.active {
+            background: var(--container-bg);
             color: var(--accent-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         }
 
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--accent-color);
-        }
-
-        /* Content Sections */
-        .content-section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
+        /* ════════════════════════════════════
+           § 6 · SECTIONS
+        ════════════════════════════════════ */
+        .content-section { display: none; animation: fadeIn 0.3s ease; }
         .content-section.active { display: block; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Large Time Display */
-        .time-display {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin: 20px 0;
-            letter-spacing: 2px;
-            font-variant-numeric: tabular-nums; /* เลขไม่ขยับไปมา */
-        }
-        
-        .date-display {
-            font-size: 1.1rem;
-            color: var(--secondary-text);
-            margin-bottom: 20px;
-        }
-
-        /* Select Box */
+        /* ════════════════════════════════════
+           § 7 · WORLD CLOCK
+        ════════════════════════════════════ */
         select {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--secondary-text);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
-            width: 80%;
-            margin-bottom: 15px;
+            width: 90%;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        select:focus { border-color: var(--accent-color); }
+
+        .time-display {
+            font-size: clamp(3rem, 11vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-variant-numeric: tabular-nums;
+            margin: 14px 0 6px;
+            line-height: 1;
+        }
+        .date-display {
+            font-size: 0.95rem;
+            color: var(--secondary-text);
+            margin-bottom: 16px;
         }
 
-        /* Control Buttons */
+        /* ════════════════════════════════════
+           § 8 · BUTTONS
+        ════════════════════════════════════ */
         .btn-group {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 18px;
+            flex-wrap: wrap;
         }
-
         .btn {
-            padding: 12px 25px;
+            padding: 11px 22px;
             border: none;
             border-radius: 30px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
-            font-weight: bold;
-            color: white;
-            transition: filter 0.2s, transform 0.1s;
+            font-weight: 700;
+            color: #fff;
+            transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+            min-width: 80px;
         }
-        .btn:active { transform: scale(0.95); }
+        .btn:hover  { filter: brightness(1.1); box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
+        .btn:active { transform: scale(0.93); }
+        .btn-start  { background: linear-gradient(135deg, #00b894, #00cec9); }
+        .btn-stop   { background: linear-gradient(135deg, #e17055, #d63031); }
+        .btn-reset  { background: var(--btn-bg); color: var(--text-color); }
+        .btn-lap    { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
 
-        .btn-start { background-color: #00b894; }
-        .btn-stop { background-color: #d63031; }
-        .btn-reset { background-color: #636e72; }
+        /* ════════════════════════════════════
+           § 9 · STOPWATCH + LAPS
+        ════════════════════════════════════ */
+        .sw-display-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        /* Milliseconds suffix */
+        .ms-display {
+            font-size: 1.4rem;
+            color: var(--secondary-text);
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+            vertical-align: baseline;
+        }
 
-        /* Inputs for Timer */
+        .lap-list {
+            margin-top: 16px;
+            max-height: 180px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            text-align: left;
+        }
+        .lap-list:empty { display: none; }
+        .lap-list::-webkit-scrollbar { width: 4px; }
+        .lap-list::-webkit-scrollbar-thumb { background: var(--btn-bg); border-radius: 4px; }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-variant-numeric: tabular-nums;
+            background: var(--lap-bg);
+            margin-bottom: 5px;
+            animation: lapSlide 0.25s ease;
+        }
+        @keyframes lapSlide {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .lap-number { color: var(--secondary-text); font-weight: 600; min-width: 45px; }
+        .lap-split  { color: var(--text-color);  font-weight: 700; }
+        .lap-total  { color: var(--secondary-text); font-size: 0.8rem; }
+
+        /* ════════════════════════════════════
+           § 10 · TIMER + PROGRESS RING
+        ════════════════════════════════════ */
+        .timer-ring-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0;
+        }
+        .timer-ring-svg {
+            position: absolute;
+            top: 0; left: 0;
+            transform: rotate(-90deg);
+        }
+        .ring-bg    { fill: none; stroke: var(--border);        stroke-width: 4; }
+        .ring-prog  { fill: none; stroke: var(--accent-color);  stroke-width: 4;
+                      stroke-linecap: round; transition: stroke-dashoffset 0.9s linear;
+                      filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
         .timer-inputs {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
         }
         .timer-inputs input {
-            width: 60px;
-            padding: 10px;
+            width: 64px;
+            padding: 12px 8px;
             text-align: center;
-            border-radius: 8px;
-            border: 1px solid var(--secondary-text);
+            border-radius: 10px;
+            border: 1px solid var(--border);
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .timer-inputs input:focus { border-color: var(--accent-color); }
+        .timer-inputs .sep { font-size: 1.5rem; font-weight: 700; color: var(--secondary-text); }
+        .timer-inputs input[type=number]::-webkit-inner-spin-button,
+        .timer-inputs input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        /* Timer alert state */
+        @keyframes alertFlash {
+            0%, 100% { background-color: var(--container-bg); }
+            50%       { background-color: rgba(214,48,49,0.12); }
+        }
+        .clock-container.alert-flash { animation: alertFlash 0.4s ease 4; }
+
+        /* ════════════════════════════════════
+           § 11 · TOAST NOTIFICATION
+        ════════════════════════════════════ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 13px 28px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            z-index: 9999;
+            transition: transform 0.4s cubic-bezier(.175,.885,.32,1.275), opacity 0.4s;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
-        /* Credit Footer */
+        /* ════════════════════════════════════
+           § 12 · FOOTER
+        ════════════════════════════════════ */
+        .footer-area {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 1;
+        }
         .footer-credit {
-            margin-top: 30px;
-            color: #b2bec3;
-            font-size: 0.9rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            color: var(--secondary-text);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
+        /* ════════════════════════════════════
+           § 13 · RESPONSIVE
+        ════════════════════════════════════ */
+        @media (max-width: 420px) {
+            .clock-container { padding: 22px 18px 18px; }
+            .btn { padding: 10px 16px; font-size: 0.85rem; min-width: 68px; }
+        }
     </style>
 </head>
-<body data-theme="dark"> <div class="clock-container">
-        <button class="theme-toggle" onclick="toggleTheme()">
+<body data-theme="dark">
+
+    <div class="clock-container" id="main-card">
+
+        <!-- ── Top-left: Go to Koo Mean Site ── -->
+        <a href="https://koomean.github.io" target="_blank" rel="noopener noreferrer"
+           class="corner-btn site-link" title="Koo Mean SITE">
+            <i class="fas fa-house"></i>
+        </a>
+
+        <!-- ── Top-right: Theme toggle ── -->
+        <button class="corner-btn theme-toggle" id="theme-toggle-btn" title="Toggle theme">
             <i class="fas fa-moon" id="theme-icon"></i>
         </button>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('world-clock')">นาฬิกาโลก</button>
-            <button class="tab-btn" onclick="switchTab('stopwatch')">จับเวลา</button>
-            <button class="tab-btn" onclick="switchTab('timer')">นับถอยหลัง</button>
-        </div>
+        <!-- ── Tabs ── -->
+        <nav class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="world-clock" role="tab">🌏 นาฬิกาโลก</button>
+            <button class="tab-btn"        data-tab="stopwatch"   role="tab">⏱ จับเวลา</button>
+            <button class="tab-btn"        data-tab="timer"       role="tab">⏳ ถอยหลัง</button>
+        </nav>
 
-        <div id="world-clock" class="content-section active">
-            <select id="timezone-select" onchange="updateWorldClock()">
-                <option value="Asia/Bangkok">🇹🇭 Bangkok (ไทย)</option>
-                <option value="Asia/Tokyo">🇯🇵 Tokyo (ญี่ปุ่น)</option>
-                <option value="Europe/London">🇬🇧 London (UK)</option>
-                <option value="America/New_York">🇺🇸 New York (USA)</option>
-                <option value="Australia/Sydney">🇦🇺 Sydney (ออสเตรเลีย)</option>
-                <option value="UTC">🌍 UTC (เวลาสากล)</option>
+        <!-- ══════════════════════════════
+             SECTION 1 · WORLD CLOCK
+        ══════════════════════════════ -->
+        <section id="world-clock" class="content-section active" role="tabpanel">
+            <select id="timezone-select">
+                <optgroup label="เอเชีย">
+                    <option value="Asia/Bangkok"    selected>🇹🇭 Bangkok (ไทย)</option>
+                    <option value="Asia/Tokyo">🇯🇵 Tokyo (ญี่ปุ่น)</option>
+                    <option value="Asia/Seoul">🇰🇷 Seoul (เกาหลี)</option>
+                    <option value="Asia/Shanghai">🇨🇳 Shanghai (จีน)</option>
+                    <option value="Asia/Singapore">🇸🇬 Singapore</option>
+                    <option value="Asia/Dubai">🇦🇪 Dubai (UAE)</option>
+                    <option value="Asia/Kolkata">🇮🇳 Mumbai (อินเดีย)</option>
+                </optgroup>
+                <optgroup label="ยุโรป">
+                    <option value="Europe/London">🇬🇧 London (UK)</option>
+                    <option value="Europe/Paris">🇫🇷 Paris (ฝรั่งเศส)</option>
+                    <option value="Europe/Berlin">🇩🇪 Berlin (เยอรมัน)</option>
+                    <option value="Europe/Moscow">🇷🇺 Moscow (รัสเซีย)</option>
+                </optgroup>
+                <optgroup label="อเมริกา">
+                    <option value="America/New_York">🇺🇸 New York</option>
+                    <option value="America/Chicago">🇺🇸 Chicago</option>
+                    <option value="America/Los_Angeles">🇺🇸 Los Angeles</option>
+                    <option value="America/Sao_Paulo">🇧🇷 São Paulo</option>
+                </optgroup>
+                <optgroup label="อื่นๆ">
+                    <option value="Australia/Sydney">🇦🇺 Sydney</option>
+                    <option value="Pacific/Auckland">🇳🇿 Auckland</option>
+                    <option value="UTC">🌍 UTC</option>
+                </optgroup>
             </select>
             <div class="time-display" id="clock-display">00:00:00</div>
-            <div class="date-display" id="date-display">...</div>
-        </div>
+            <div class="date-display" id="date-display">…</div>
+        </section>
 
-        <div id="stopwatch" class="content-section">
-            <div class="time-display" id="sw-display">00:00:00</div>
+        <!-- ══════════════════════════════
+             SECTION 2 · STOPWATCH
+        ══════════════════════════════ -->
+        <section id="stopwatch" class="content-section" role="tabpanel">
+            <div class="sw-display-wrap">
+                <span class="time-display" id="sw-display">00:00:00</span><span class="ms-display" id="sw-ms">.00</span>
+            </div>
             <div class="btn-group">
-                <button class="btn btn-start" onclick="startStopwatch()">Start</button>
-                <button class="btn btn-stop" onclick="stopStopwatch()">Stop</button>
-                <button class="btn btn-reset" onclick="resetStopwatch()">Reset</button>
+                <button class="btn btn-start" id="sw-start-btn">Start</button>
+                <button class="btn btn-stop"  id="sw-stop-btn" >Stop</button>
+                <button class="btn btn-lap"   id="sw-lap-btn"  >Lap</button>
+                <button class="btn btn-reset" id="sw-reset-btn">Reset</button>
             </div>
-        </div>
+            <div class="lap-list" id="lap-list" role="list" aria-label="Lap times"></div>
+        </section>
 
-        <div id="timer" class="content-section">
-            <div class="timer-inputs" id="timer-inputs-div">
-                <input type="number" id="tm-h" placeholder="ชม." min="0" max="99">
-                <input type="number" id="tm-m" placeholder="นาที" min="0" max="59">
-                <input type="number" id="tm-s" placeholder="วิ" min="0" max="59">
+        <!-- ══════════════════════════════
+             SECTION 3 · COUNTDOWN TIMER
+        ══════════════════════════════ -->
+        <section id="timer" class="content-section" role="tabpanel">
+            <!-- Input phase -->
+            <div id="timer-input-phase">
+                <div class="timer-inputs">
+                    <input type="number" id="tm-h" placeholder="00" min="0" max="99"  aria-label="hours">
+                    <span class="sep">:</span>
+                    <input type="number" id="tm-m" placeholder="00" min="0" max="59"  aria-label="minutes">
+                    <span class="sep">:</span>
+                    <input type="number" id="tm-s" placeholder="00" min="0" max="59"  aria-label="seconds">
+                </div>
             </div>
-            <div class="time-display" id="tm-display" style="display:none;">00:00:00</div>
+
+            <!-- Running phase -->
+            <div id="timer-running-phase" style="display:none;">
+                <div class="timer-ring-wrap" id="ring-wrap">
+                    <!-- SVG injected by JS so radius is computed once -->
+                    <div class="time-display" id="tm-display">00:00:00</div>
+                </div>
+            </div>
+
             <div class="btn-group">
-                <button class="btn btn-start" onclick="startTimer()">Start</button>
-                <button class="btn btn-stop" onclick="stopTimer()">Stop</button>
-                <button class="btn btn-reset" onclick="resetTimer()">Reset</button>
+                <button class="btn btn-start" id="tm-start-btn">Start</button>
+                <button class="btn btn-stop"  id="tm-stop-btn" >Stop</button>
+                <button class="btn btn-reset" id="tm-reset-btn">Reset</button>
             </div>
-        </div>
+        </section>
 
+    </div><!-- /.clock-container -->
+
+    <!-- Footer -->
+    <div class="footer-area">
+        <span class="footer-credit">Create By koomean</span>
     </div>
 
-    <div class="footer-credit">Create By koomean</div>
+    <!-- Toast notification -->
+    <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
 
+    <!-- ════════════════════════════════════════════════════════════
+         JAVASCRIPT
+    ════════════════════════════════════════════════════════════ -->
     <script>
-        // --- 1. Theme Logic ---
-        const body = document.body;
-        const themeIcon = document.getElementById('theme-icon');
+    'use strict';
 
-        function toggleTheme() {
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.setAttribute('data-theme', 'light');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
+    // ════════════════════════════════════
+    // § 1 · CONSTANTS & ELEMENT CACHE
+    // ════════════════════════════════════
+
+    const RING_R     = 80;   // SVG progress-ring radius (px)
+    const RING_CIRC  = 2 * Math.PI * RING_R;
+    const RING_SIZE  = (RING_R + 6) * 2;   // viewBox size
+
+    const $ = id => document.getElementById(id);
+    const el = {
+        body      : document.body,
+        card      : $('main-card'),
+        themeBtn  : $('theme-toggle-btn'),
+        themeIcon : $('theme-icon'),
+        toast     : $('toast'),
+        // World clock
+        tzSelect  : $('timezone-select'),
+        clockDisp : $('clock-display'),
+        dateDisp  : $('date-display'),
+        // Stopwatch
+        swDisp    : $('sw-display'),
+        swMs      : $('sw-ms'),
+        swStart   : $('sw-start-btn'),
+        swStop    : $('sw-stop-btn'),
+        swLap     : $('sw-lap-btn'),
+        swReset   : $('sw-reset-btn'),
+        lapList   : $('lap-list'),
+        // Timer
+        timerInputPhase  : $('timer-input-phase'),
+        timerRunPhase    : $('timer-running-phase'),
+        ringWrap  : $('ring-wrap'),
+        tmDisplay : $('tm-display'),
+        tmH       : $('tm-h'),
+        tmM       : $('tm-m'),
+        tmS       : $('tm-s'),
+        tmStart   : $('tm-start-btn'),
+        tmStop    : $('tm-stop-btn'),
+        tmReset   : $('tm-reset-btn'),
+    };
+
+    // ════════════════════════════════════
+    // § 2 · THEME
+    // ════════════════════════════════════
+
+    (function initTheme() {
+        // Restore saved theme; default dark
+        const saved = localStorage.getItem('uclock-theme') || 'dark';
+        applyTheme(saved);
+    })();
+
+    function applyTheme(theme) {
+        el.body.setAttribute('data-theme', theme);
+        el.themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        localStorage.setItem('uclock-theme', theme);
+    }
+
+    el.themeBtn.addEventListener('click', () => {
+        const next = el.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+    });
+
+    // ════════════════════════════════════
+    // § 3 · TABS
+    //   Bug fix: no implicit `event` global.
+    //   Data-driven via data-tab attribute.
+    // ════════════════════════════════════
+
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn));
+    });
+
+    function switchTab(tabId, activeBtn) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        $(tabId).classList.add('active');
+        activeBtn.classList.add('active');
+    }
+
+    // ════════════════════════════════════
+    // § 4 · WORLD CLOCK
+    // ════════════════════════════════════
+
+    function updateWorldClock() {
+        const tz  = el.tzSelect.value;
+        const now = new Date();
+        el.clockDisp.textContent = now.toLocaleTimeString('en-US', {
+            timeZone: tz, hour12: false,
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+        });
+        el.dateDisp.textContent = now.toLocaleDateString('th-TH', {
+            timeZone: tz, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        });
+    }
+
+    el.tzSelect.addEventListener('change', updateWorldClock);
+    updateWorldClock();
+    setInterval(updateWorldClock, 1000);
+
+    // ════════════════════════════════════
+    // § 5 · STOPWATCH
+    // ════════════════════════════════════
+
+    const sw = {
+        rafId    : null,
+        elapsed  : 0,       // ms accumulated before most recent Start
+        startTs  : null,    // timestamp when last Start was pressed
+        running  : false,
+        lapTimes : [],      // array of total-elapsed ms at each lap
+        lapCount : 0,
+    };
+
+    function swNow() { return sw.elapsed + (sw.running ? (Date.now() - sw.startTs) : 0); }
+
+    function swTick() {
+        renderStopwatch(swNow());
+        sw.rafId = requestAnimationFrame(swTick);
+    }
+
+    function renderStopwatch(ms) {
+        const totalS = Math.floor(ms / 1000);
+        const h = Math.floor(totalS / 3600);
+        const m = Math.floor((totalS % 3600) / 60);
+        const s = totalS % 60;
+        const cs = Math.floor((ms % 1000) / 10);        // centiseconds (2 digits)
+        el.swDisp.textContent = fmt2(h) + ':' + fmt2(m) + ':' + fmt2(s);
+        el.swMs.textContent   = '.' + fmt2(cs);
+    }
+
+    el.swStart.addEventListener('click', () => {
+        if (sw.running) return;
+        sw.running = true;
+        sw.startTs = Date.now();
+        sw.rafId   = requestAnimationFrame(swTick);
+    });
+
+    el.swStop.addEventListener('click', () => {
+        if (!sw.running) return;
+        sw.running  = false;
+        sw.elapsed  = swNow();
+        cancelAnimationFrame(sw.rafId);
+    });
+
+    el.swLap.addEventListener('click', () => {
+        if (!sw.running && sw.elapsed === 0) return;
+        const total = swNow();
+        const prev  = sw.lapTimes.at(-1) ?? 0;
+        const split = total - prev;
+        sw.lapTimes.push(total);
+        sw.lapCount++;
+
+        // Prepend newest lap at top
+        const item = document.createElement('div');
+        item.className  = 'lap-item';
+        item.setAttribute('role', 'listitem');
+        item.innerHTML  =
+            `<span class="lap-number">Lap ${sw.lapCount}</span>` +
+            `<span class="lap-split">${formatMs(split)}</span>` +
+            `<span class="lap-total">${formatMs(total)}</span>`;
+        el.lapList.insertBefore(item, el.lapList.firstChild);
+    });
+
+    el.swReset.addEventListener('click', () => {
+        sw.running  = false;
+        sw.elapsed  = 0;
+        sw.startTs  = null;
+        sw.lapTimes = [];
+        sw.lapCount = 0;
+        cancelAnimationFrame(sw.rafId);
+        renderStopwatch(0);
+        el.lapList.innerHTML = '';
+    });
+
+    // ════════════════════════════════════
+    // § 6 · COUNTDOWN TIMER
+    // ════════════════════════════════════
+
+    const tm = {
+        totalInit  : 0,     // initial seconds (for ring calculation)
+        remaining  : 0,     // seconds left
+        intervalId : null,
+        running    : false,
+    };
+
+    // Inject SVG ring into #ring-wrap (before the time display)
+    const ringSize = RING_SIZE;
+    const ringHalf = ringSize / 2;
+    const svgNS    = 'http://www.w3.org/2000/svg';
+    const svg      = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width',   ringSize);
+    svg.setAttribute('height',  ringSize);
+    svg.setAttribute('viewBox', `0 0 ${ringSize} ${ringSize}`);
+    svg.classList.add('timer-ring-svg');
+
+    const ringBg   = document.createElementNS(svgNS, 'circle');
+    ringBg.setAttribute('class', 'ring-bg');
+    ringBg.setAttribute('cx', ringHalf); ringBg.setAttribute('cy', ringHalf);
+    ringBg.setAttribute('r',  RING_R);
+
+    const ringProg = document.createElementNS(svgNS, 'circle');
+    ringProg.setAttribute('class', 'ring-prog');
+    ringProg.setAttribute('cx', ringHalf); ringProg.setAttribute('cy', ringHalf);
+    ringProg.setAttribute('r',  RING_R);
+    ringProg.style.strokeDasharray  = RING_CIRC;
+    ringProg.style.strokeDashoffset = RING_CIRC;
+
+    svg.appendChild(ringBg);
+    svg.appendChild(ringProg);
+    el.ringWrap.insertBefore(svg, el.tmDisplay);
+    el.ringWrap.style.width  = ringSize + 'px';
+    el.ringWrap.style.height = ringSize + 'px';
+
+    function updateRing(remaining, total) {
+        const ratio  = total > 0 ? remaining / total : 0;
+        ringProg.style.strokeDashoffset = RING_CIRC * (1 - ratio);
+    }
+
+    function tmTick() {
+        if (tm.remaining <= 0) {
+            clearInterval(tm.intervalId);
+            tm.intervalId = null;
+            tm.running    = false;
+            el.tmDisplay.textContent = '⏰ หมดเวลา!';
+            updateRing(0, tm.totalInit);
+            triggerTimerEnd();
+            return;
+        }
+        tm.remaining--;
+        el.tmDisplay.textContent = formatSec(tm.remaining);
+        updateRing(tm.remaining, tm.totalInit);
+    }
+
+    el.tmStart.addEventListener('click', () => {
+        if (tm.running) return;
+
+        if (tm.remaining === 0) {
+            // Read from inputs
+            const h = parseInt(el.tmH.value) || 0;
+            const m = parseInt(el.tmM.value) || 0;
+            const s = parseInt(el.tmS.value) || 0;
+            tm.remaining = h * 3600 + m * 60 + s;
+            if (tm.remaining <= 0) { showToast('กรอกเวลาก่อนนะครับ ⏱'); return; }
+            tm.totalInit = tm.remaining;
         }
 
-        // --- 2. Tab Logic ---
-        function switchTab(tabId) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        // Switch UI
+        el.timerInputPhase.style.display  = 'none';
+        el.timerRunPhase.style.display    = 'block';
+        el.tmDisplay.textContent          = formatSec(tm.remaining);
+        updateRing(tm.remaining, tm.totalInit);
 
-            // Show selected
-            document.getElementById(tabId).classList.add('active');
-            
-            // Highlight Button (หาปุ่มที่กดแล้วใส่ active class)
-            event.target.classList.add('active');
-        }
+        tm.running    = true;
+        tm.intervalId = setInterval(tmTick, 1000);
+    });
 
-        // --- 3. World Clock Logic ---
-        function updateWorldClock() {
-            const timezone = document.getElementById('timezone-select').value;
-            const now = new Date();
-            
-            // Format Time
-            const timeOptions = { timeZone: timezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
-            
-            // Format Date
-            const dateOptions = { timeZone: timezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = new Intl.DateTimeFormat('th-TH', dateOptions).format(now);
+    el.tmStop.addEventListener('click', () => {
+        if (!tm.running) return;
+        clearInterval(tm.intervalId);
+        tm.intervalId = null;
+        tm.running    = false;
+        // Leave UI in running phase so user can resume
+    });
 
-            document.getElementById('clock-display').innerText = timeString;
-            document.getElementById('date-display').innerText = dateString;
-        }
-        setInterval(updateWorldClock, 1000);
-        updateWorldClock(); // Run immediately
+    el.tmReset.addEventListener('click', () => {
+        clearInterval(tm.intervalId);
+        tm.intervalId = null;
+        tm.running    = false;
+        tm.remaining  = 0;
+        tm.totalInit  = 0;
+        updateRing(0, 1);
+        el.timerRunPhase.style.display   = 'none';
+        el.timerInputPhase.style.display = 'block';
+        el.tmH.value = ''; el.tmM.value = ''; el.tmS.value = '';
+    });
 
-        // --- 4. Stopwatch Logic ---
-        let swInterval;
-        let swTime = 0; // milliseconds
-        let swRunning = false;
+    // Enter key on timer inputs → Start
+    [el.tmH, el.tmM, el.tmS].forEach(input => {
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') el.tmStart.click(); });
+    });
 
-        function formatTime(ms) {
-            let s = Math.floor(ms / 1000);
-            let m = Math.floor(s / 60);
-            let h = Math.floor(m / 60);
-            
-            s = s % 60;
-            m = m % 60;
-            
-            // เติม 0 ข้างหน้า
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
+    function triggerTimerEnd() {
+        // Flash card background
+        el.card.classList.remove('alert-flash');
+        void el.card.offsetWidth;         // force reflow to restart animation
+        el.card.classList.add('alert-flash');
+        el.card.addEventListener('animationend', () => el.card.classList.remove('alert-flash'), { once: true });
 
-        function startStopwatch() {
-            if (!swRunning) {
-                swRunning = true;
-                const startTime = Date.now() - swTime;
-                swInterval = setInterval(() => {
-                    swTime = Date.now() - startTime;
-                    document.getElementById('sw-display').innerText = formatTime(swTime);
-                }, 100); // อัปเดตทุก 0.1 วิ เพื่อประหยัดทรัพยากร
-            }
-        }
+        // Play beep via Web Audio API
+        playBeep();
 
-        function stopStopwatch() {
-            swRunning = false;
-            clearInterval(swInterval);
-        }
+        // Show toast
+        showToast('⏰ หมดเวลาแล้ว!');
 
-        function resetStopwatch() {
-            stopStopwatch();
-            swTime = 0;
-            document.getElementById('sw-display').innerText = "00:00:00";
-        }
+        // Auto-reset after 3 s
+        setTimeout(() => el.tmReset.click(), 3000);
+    }
 
-        // --- 5. Countdown Timer Logic ---
-        let tmInterval;
-        let tmTotalSeconds = 0;
+    // ════════════════════════════════════
+    // § 7 · WEB AUDIO BEEP
+    //   Generates a short tone via AudioContext –
+    //   no external file needed.
+    // ════════════════════════════════════
 
-        function startTimer() {
-            // ถ้าจับเวลาอยู่แล้วไม่ต้องทำอะไร
-            if (tmInterval) return;
+    function playBeep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.3, 0.6].forEach(offset => {
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type      = 'sine';
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.35, ctx.currentTime + offset);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.25);
+                osc.start(ctx.currentTime + offset);
+                osc.stop(ctx.currentTime  + offset + 0.25);
+            });
+        } catch { /* AudioContext not available – silent fallback */ }
+    }
 
-            const h = parseInt(document.getElementById('tm-h').value) || 0;
-            const m = parseInt(document.getElementById('tm-m').value) || 0;
-            const s = parseInt(document.getElementById('tm-s').value) || 0;
+    // ════════════════════════════════════
+    // § 8 · TOAST
+    // ════════════════════════════════════
 
-            if (tmTotalSeconds === 0) {
-                tmTotalSeconds = (h * 3600) + (m * 60) + s;
-            }
+    let toastTimer = null;
 
-            if (tmTotalSeconds <= 0) return;
+    function showToast(msg, duration = 3000) {
+        el.toast.textContent = msg;
+        el.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toast.classList.remove('show'), duration);
+    }
 
-            // UI switching
-            document.getElementById('timer-inputs-div').style.display = 'none';
-            document.getElementById('tm-display').style.display = 'block';
-            document.getElementById('tm-display').innerText = formatTimerDisplay(tmTotalSeconds);
+    // ════════════════════════════════════
+    // § 9 · FORMAT HELPERS
+    // ════════════════════════════════════
 
-            tmInterval = setInterval(() => {
-                tmTotalSeconds--;
-                if (tmTotalSeconds < 0) {
-                    clearInterval(tmInterval);
-                    tmInterval = null;
-                    document.getElementById('tm-display').innerText = "หมดเวลา!";
-                    // เล่นเสียงเตือนได้ที่นี่ถ้าต้องการ
-                    alert("หมดเวลาแล้ว!");
-                    resetTimer();
-                } else {
-                    document.getElementById('tm-display').innerText = formatTimerDisplay(tmTotalSeconds);
-                }
-            }, 1000);
-        }
+    function fmt2(n) { return String(n).padStart(2, '0'); }
 
-        function formatTimerDisplay(totalSeconds) {
-            let h = Math.floor(totalSeconds / 3600);
-            let m = Math.floor((totalSeconds % 3600) / 60);
-            let s = totalSeconds % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
+    function formatMs(ms) {
+        const totalS = Math.floor(ms / 1000);
+        const h = Math.floor(totalS / 3600);
+        const m = Math.floor((totalS % 3600) / 60);
+        const s = totalS % 60;
+        const cs = Math.floor((ms % 1000) / 10);
+        return `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}.${fmt2(cs)}`;
+    }
 
-        function stopTimer() {
-            clearInterval(tmInterval);
-            tmInterval = null;
-        }
-
-        function resetTimer() {
-            stopTimer();
-            tmTotalSeconds = 0;
-            document.getElementById('tm-display').style.display = 'none';
-            document.getElementById('timer-inputs-div').style.display = 'flex';
-            document.getElementById('tm-h').value = '';
-            document.getElementById('tm-m').value = '';
-            document.getElementById('tm-s').value = '';
-        }
+    function formatSec(totalSec) {
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        return `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}`;
+    }
 
     </script>
 </body>
